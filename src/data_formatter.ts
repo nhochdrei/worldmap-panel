@@ -68,7 +68,27 @@ export default class DataFormatter {
     return dataValue;
   }
 
+  setLatLonValues(dataList, data) {
+    this.setDecodableValues(dataList, data, DataFormatter.decodeLatLon);
+  }
+
+  private static decodeLatLon(e) {
+    if (!e)
+      return {longitude: null, latitude: null};
+    const split = e.split(',');
+    if (split.length !== 2)
+      throw new Error('Expected "lon,lat" format');
+    const ret = {latitude: parseFloat(split[0]), longitude: parseFloat(split[1])};
+    if (isNaN(ret.latitude) || isNaN(ret.longitude))
+      throw new Error('Invalid lon,lat value');
+    return ret;
+  }
+
   setGeohashValues(dataList, data) {
+    this.setDecodableValues(dataList, data, decodeGeoHash);
+  }
+
+  private setDecodableValues(dataList, data, decoder) {
     if (!this.ctrl.panel.esGeoPoint || !this.ctrl.panel.esMetric) {
       return;
     }
@@ -87,7 +107,7 @@ export default class DataFormatter {
 
           result.rows.forEach(row => {
             const encodedGeohash = row[columnNames[this.ctrl.panel.esGeoPoint]];
-            const decodedGeohash = decodeGeoHash(encodedGeohash);
+            const decodedGeohash = decoder(encodedGeohash);
             const locationName = this.ctrl.panel.esLocationName
               ? row[columnNames[this.ctrl.panel.esLocationName]]
               : encodedGeohash;
@@ -111,7 +131,7 @@ export default class DataFormatter {
         } else {
           result.datapoints.forEach(datapoint => {
             const encodedGeohash = datapoint[this.ctrl.panel.esGeoPoint];
-            const decodedGeohash = decodeGeoHash(encodedGeohash);
+            const decodedGeohash = decoder(encodedGeohash);
             const locationName = this.ctrl.panel.esLocationName
               ? datapoint[this.ctrl.panel.esLocationName]
               : encodedGeohash;
@@ -177,6 +197,13 @@ export default class DataFormatter {
           latitude = decodedGeohash.latitude;
           longitude = decodedGeohash.longitude;
           key = encodedGeohash;
+        } else if (this.ctrl.panel.tableQueryOptions.queryType === 'lon,lat') {
+            const encodedGeohash = datapoint[this.ctrl.panel.tableQueryOptions.latlonField];
+            const decodedGeohash = DataFormatter.decodeLatLon(encodedGeohash);
+
+            latitude = decodedGeohash.latitude;
+            longitude = decodedGeohash.longitude;
+            key = encodedGeohash;
         } else {
           latitude = datapoint[this.ctrl.panel.tableQueryOptions.latitudeField];
           longitude = datapoint[this.ctrl.panel.tableQueryOptions.longitudeField];

@@ -37,6 +37,7 @@ const panelDefaults = {
   tableQueryOptions: {
     queryType: "geohash",
     geohashField: "geohash",
+    latlonField: 'latlon',
     latitudeField: "latitude",
     longitudeField: "longitude",
     metricField: "metric"
@@ -135,6 +136,7 @@ export default class WorldmapCtrl extends MetricsPanelCtrl {
       // .. Do nothing
     } else if (
       this.panel.locationData !== "geohash" &&
+      this.panel.locationData !== "lon,lat" &&
       this.panel.locationData !== "json result"
     ) {
       $.getJSON(
@@ -148,6 +150,13 @@ export default class WorldmapCtrl extends MetricsPanelCtrl {
   reloadLocations(res) {
     this.locations = res;
     this.refresh();
+  }
+
+  showTableLatlonOptions() {
+    return (
+      this.panel.locationData === "table" &&
+      this.panel.tableQueryOptions.queryType === "lon,lat"
+    );
   }
 
   showTableGeohashOptions() {
@@ -192,6 +201,9 @@ export default class WorldmapCtrl extends MetricsPanelCtrl {
 
       if (this.panel.locationData === "geohash") {
         this.dataFormatter.setGeohashValues(dataList, data);
+      } else if (this.panel.locationData === "lon,lat") {
+        this.series = dataList.map(this.seriesHandler.bind(this));
+        this.dataFormatter.setLatLonValues(dataList, data);
       } else if (this.panel.locationData === "table") {
         const tableData = dataList.map(DataFormatter.tableHandler.bind(this));
         this.dataFormatter.setTableValues(tableData, data);
@@ -294,7 +306,7 @@ export default class WorldmapCtrl extends MetricsPanelCtrl {
   changeLocationData() {
     this.loadLocationDataFromFile(true);
 
-    if (this.panel.locationData === "geohash") {
+    if (this.panel.locationData === "geohash" || this.panel.locationData === "lon,lat") {
       this.render();
     }
   }
