@@ -178,6 +178,11 @@ export default class WorldMap {
     const circleMinSize = parseInt(this.ctrl.panel.circleMinSize, 10) || 2;
     const circleMaxSize = parseInt(this.ctrl.panel.circleMaxSize, 10) || 30;
 
+    if (this.ctrl.panel.absoluteSize) {
+      const val = dataPointValue * (parseFloat(this.ctrl.panel.circleSizeFactor) || 1.0);
+      return Math.max(circleMinSize, Math.min(circleMaxSize, val));
+    }
+
     if (this.ctrl.data.valueRange === 0) {
       return circleMaxSize;
     }
