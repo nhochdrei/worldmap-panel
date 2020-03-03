@@ -29,6 +29,13 @@
       <input type="text" class="input-small gf-form-input width-10" ng-model="ctrl.panel.circleMaxSize" ng-change="ctrl.render()"
         placeholder="30" ng-model-onblur />
     </div>
+    <div class="gf-form" ng-show="ctrl.panel.absoluteSize">
+      <label class="gf-form-label width-10">Size Factor</label>
+      <input type="text" class="input-small gf-form-input width-10" ng-model="ctrl.panel.circleSizeFactor" ng-change="ctrl.render()"
+             placeholder="1" ng-model-onblur />
+    </div>
+    <gf-form-switch class="gf-form" label="Absolute size" label-class="width-10" checked="ctrl.panel.absoluteSize" on-change="ctrl.toggleAbsoluteSize()">
+    </gf-form-switch>
     <gf-form-switch class="gf-form" label="Sticky Labels" label-class="width-10" checked="ctrl.panel.stickyLabels" on-change="ctrl.toggleStickyLabels()">
     </gf-form-switch>
     <div class="gf-form">

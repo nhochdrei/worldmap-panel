@@ -18,6 +18,7 @@ const panelDefaults = {
   valueName: "total",
   circleMinSize: 2,
   circleMaxSize: 30,
+  circleSizeFactor: 1,
   locationData: "countries",
   thresholds: "0,10",
   colors: [
@@ -34,6 +35,7 @@ const panelDefaults = {
   hideEmpty: false,
   hideZero: false,
   stickyLabels: false,
+  absoluteSize: false,
   tableQueryOptions: {
     queryType: "geohash",
     geohashField: "geohash",
@@ -274,6 +276,11 @@ export default class WorldmapCtrl extends MetricsPanelCtrl {
 
   toggleMouseWheelZoom() {
     this.map.setMouseWheelZoom();
+    this.render();
+  }
+
+  toggleAbsoluteSize() {
+    this.map.clearCircles();
     this.render();
   }
 
