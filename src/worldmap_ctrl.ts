@@ -1,4 +1,4 @@
-import { MetricsPanelCtrl } from "grafana/app/plugins/sdk";
+import {MetricsPanelCtrl} from "grafana/app/plugins/sdk";
 import TimeSeries from "grafana/app/core/time_series2";
 import appEvents from 'grafana/app/core/app_events';
 
@@ -20,6 +20,7 @@ const panelDefaults = {
   circleMaxSize: 30,
   locationData: "countries",
   thresholds: "0,10",
+  categories: "a,b",
   colors: [
     "rgba(245, 54, 54, 0.9)",
     "rgba(237, 129, 40, 0.89)",
@@ -29,6 +30,7 @@ const panelDefaults = {
   unitPlural: "",
   showLegend: true,
   mouseWheelZoom: false,
+  categoricalColors: false,
   esMetric: "Count",
   decimals: 0,
   hideEmpty: false,
@@ -204,7 +206,7 @@ export default class WorldmapCtrl extends MetricsPanelCtrl {
       }
       this.data = data;
 
-      this.updateThresholdData();
+      this.updateColors();
 
       if (this.data.length && this.panel.mapCenter === "Last GeoHash") {
         this.centerOnLastGeoHash();
@@ -276,15 +278,56 @@ export default class WorldmapCtrl extends MetricsPanelCtrl {
     this.render();
   }
 
+  changeCategories() {
+    this.updateCategoryData();
+    this.map.legend.update();
+    this.render();
+  }
+
+  changeColorMode() {
+    this.updateColors();
+    this.map.legend.update();
+    this.render();
+  }
+
+  splitCategories() {
+    return this.panel.categories.split(",").reduce((categories, str, idx) => {
+      categories[str.trim()] = idx + 1;
+      return categories;
+    }, {});
+  }
+
+  updateCategoryData() {
+    this.data.categories = this.splitCategories();
+    this.adjustColorCount(this.data.categories);
+  }
+
+  categoriesForEdit() {
+    return _.keys(this.splitCategories());
+  }
+
   updateThresholdData() {
     this.data.thresholds = this.panel.thresholds.split(",").map(strValue => {
       return Number(strValue.trim());
     });
-    while (_.size(this.panel.colors) > _.size(this.data.thresholds) + 1) {
+    this.adjustColorCount(this.data.thresholds);
+  }
+
+  updateColors() {
+    if (this.panel.categoricalColors) {
+      this.updateCategoryData();
+    } else {
+      this.updateThresholdData();
+    }
+  }
+
+  adjustColorCount(target) {
+    const size = _.size(target) + 1;
+    while (_.size(this.panel.colors) > size) {
       // too many colors. remove the last one.
       this.panel.colors.pop();
     }
-    while (_.size(this.panel.colors) < _.size(this.data.thresholds) + 1) {
+    while (_.size(this.panel.colors) < size) {
       // not enough colors. add one.
       const newColor = "rgba(50, 172, 45, 0.97)";
       this.panel.colors.push(newColor);
