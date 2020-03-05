@@ -65,22 +65,39 @@ export default class WorldMap {
     };
 
     this.legend.update = () => {
-      const thresholds = this.ctrl.data.thresholds;
       let legendHtml = '';
-      legendHtml +=
-        '<div class="legend-item"><i style="background:' +
-        this.ctrl.panel.colors[0] +
-        '"></i> ' +
-        '&lt; ' +
-        thresholds[0] +
-        '</div>';
-      for (let index = 0; index < thresholds.length; index += 1) {
+      if (this.ctrl.panel.categoricalColors) {
+        const categories = this.ctrl.data.categories;
         legendHtml +=
           '<div class="legend-item"><i style="background:' +
-          this.ctrl.panel.colors[index + 1] +
+          this.ctrl.panel.colors[0] +
+          '"></i>*' +
+          '</div>';
+        for (let cat of _.keys(categories)) {
+          legendHtml +=
+            '<div class="legend-item"><i style="background:' +
+            this.ctrl.panel.colors[categories[cat]] +
+            '"></i> ' +
+            _.escape(cat) +
+            '</div>';
+        }
+      } else {
+        const thresholds = this.ctrl.data.thresholds;
+        legendHtml +=
+          '<div class="legend-item"><i style="background:' +
+          this.ctrl.panel.colors[0] +
           '"></i> ' +
-          thresholds[index] +
-          (thresholds[index + 1] ? '&ndash;' + thresholds[index + 1] + '</div>' : '+');
+          '&lt; ' +
+          thresholds[0] +
+          '</div>';
+        for (let index = 0; index < thresholds.length; index += 1) {
+          legendHtml +=
+            '<div class="legend-item"><i style="background:' +
+            this.ctrl.panel.colors[index + 1] +
+            '"></i> ' +
+            thresholds[index] +
+            (thresholds[index + 1] ? '&ndash;' + thresholds[index + 1] + '</div>' : '+');
+        }
       }
       this.legend._div.innerHTML = legendHtml;
     };
@@ -150,8 +167,8 @@ export default class WorldMap {
       if (circle) {
         circle.setRadius(this.calcCircleSize(dataPoint.value || 0));
         circle.setStyle({
-          color: this.getColor(dataPoint.value),
-          fillColor: this.getColor(dataPoint.value),
+          color: this.getColor(dataPoint),
+          fillColor: this.getColor(dataPoint),
           fillOpacity: 0.5,
           location: dataPoint.key,
         });
@@ -164,8 +181,8 @@ export default class WorldMap {
   createCircle(dataPoint) {
     const circle = (<any>window).L.circleMarker([dataPoint.locationLatitude, dataPoint.locationLongitude], {
       radius: this.calcCircleSize(dataPoint.value || 0),
-      color: this.getColor(dataPoint.value),
-      fillColor: this.getColor(dataPoint.value),
+      color: this.getColor(dataPoint),
+      fillColor: this.getColor(dataPoint),
       fillOpacity: 0.5,
       location: dataPoint.key,
     });
@@ -215,10 +232,15 @@ export default class WorldMap {
     }
   }
 
-  getColor(value) {
-    for (let index = this.ctrl.data.thresholds.length; index > 0; index -= 1) {
-      if (value >= this.ctrl.data.thresholds[index - 1]) {
-        return this.ctrl.panel.colors[index];
+  getColor(dataPoint) {
+    if (this.ctrl.panel.categoricalColors) {
+      return this.ctrl.panel.colors[this.ctrl.data.categories[dataPoint.locationName] || 0];
+    } else {
+      const value = dataPoint.value;
+      for (let index = this.ctrl.data.thresholds.length; index > 0; index -= 1) {
+        if (value >= this.ctrl.data.thresholds[index - 1]) {
+          return this.ctrl.panel.colors[index];
+        }
       }
     }
     return _.first(this.ctrl.panel.colors);
