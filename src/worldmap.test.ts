@@ -195,7 +195,7 @@ describe('Worldmap', () => {
         .build();
       ctrl.panel.circleMinSize = '2';
       ctrl.panel.circleMaxSize = '10';
-      ctrl.panel.ColorMode = ColorModes.threshold.id;
+      ctrl.panel.colorMode = ColorModes.threshold.id;
       worldMap.drawCircles();
     });
 
