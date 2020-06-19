@@ -412,7 +412,6 @@ export default class WorldMap {
   getColor(dataPoint) {
     switch (this.ctrl.settings.colorMode) {
       case ColorModes.categories.id:
-        console.log(dataPoint);
         return this.getCategoryColor(dataPoint.locationName);
       case ColorModes.threshold.id:
       default:
